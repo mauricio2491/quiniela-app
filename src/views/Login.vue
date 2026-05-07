@@ -4,10 +4,10 @@
       <h1>🏆 Quiniela</h1>
       
       <div class="tabs">
-        <button :class="['tab', { active: activeTab === 'login' }]" @click="activeTab = 'login">
+        <button :class="['tab', { active: activeTab === 'login' }]" @click="activeTab = 'login'">
           Ingresar
         </button>
-        <button :class="['tab', { active: activeTab === 'register' }]" @click="activeTab = 'register">
+        <button :class="['tab', { active: activeTab === 'register' }]" @click="activeTab = 'register'">
           Crear Cuenta
         </button>
       </div>

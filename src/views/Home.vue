@@ -1,25 +1,41 @@
 <template>
   <div class="home-container">
-    <div class="content">
-      <div class="welcome-card">
-        <h1>¡Bienvenido! 👋</h1>
-        <p class="welcome-text">{{ authStore.user?.username }}</p>
-        <div class="features">
-          <div class="feature">
-            <h2>📊 Tabla de Posiciones</h2>
-            <p>Visualiza el ranking de todos los participantes</p>
-            <router-link to="/standings" class="btn">Ver Posiciones</router-link>
+    <div class="header">
+      <h1>⚽ Partidos por Jugar</h1>
+    </div>
+
+    <div class="matches-grid">
+      <div v-for="match in quinielaStore.matches" :key="match.id" class="match-card">
+        <div class="match-date">{{ formatDate(match.fecha) }}</div>
+        
+        <div class="match-body">
+          <div class="team local">
+            <p class="team-name">{{ match.local }}</p>
+            <input 
+              v-model.number="match.scoreLocal" 
+              type="number" 
+              min="0" 
+              class="score-input"
+              placeholder="0"
+            >
           </div>
-          <div class="feature">
-            <h2>🎯 Participa</h2>
-            <p>Realiza tus quinielas y acumula puntos</p>
-            <button class="btn" disabled>Próximamente</button>
+
+          <div class="vs">vs</div>
+
+          <div class="team visitante">
+            <input 
+              v-model.number="match.scoreVisitante" 
+              type="number" 
+              min="0" 
+              class="score-input"
+              placeholder="0"
+            >
+            <p class="team-name">{{ match.visitante }}</p>
           </div>
-          <div class="feature">
-            <h2>🏆 Premios</h2>
-            <p>Compite por los mejores premios</p>
-            <button class="btn" disabled>Próximamente</button>
-          </div>
+        </div>
+
+        <div class="match-footer">
+          <button @click="saveMatch(match)" class="save-btn">Guardar</button>
         </div>
       </div>
     </div>
@@ -27,86 +43,150 @@
 </template>
 
 <script setup>
-import { useAuthStore } from '../stores/auth'
+import { useQuinielaStore } from '../stores/quiniela'
 
-const authStore = useAuthStore()
+const quinielaStore = useQuinielaStore()
+
+const formatDate = (fecha) => {
+  const date = new Date(fecha)
+  return date.toLocaleDateString('es-ES', { weekday: 'short', month: 'short', day: 'numeric' })
+}
+
+const saveMatch = (match) => {
+  quinielaStore.updateMatchScore(match.id, match.scoreLocal, match.scoreVisitante)
+  // Aquí podrías hacer una llamada a una API para guardar en el servidor
+  alert(`Partido guardado: ${match.local} ${match.scoreLocal || '-'} vs ${match.scoreVisitante || '-'} ${match.visitante}`)
+}
 </script>
 
 <style scoped>
 .home-container {
-  min-height: calc(100vh - 60px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 2rem;
-}
-
-.content {
-  width: 100%;
   max-width: 1200px;
+  margin: 0 auto;
 }
 
-.welcome-card {
-  background: rgba(255, 255, 255, 0.95);
-  border-radius: 15px;
-  padding: 3rem;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-}
-
-h1 {
-  color: #667eea;
-  margin-bottom: 0.5rem;
-  font-size: 2.5rem;
-}
-
-.welcome-text {
-  color: #764ba2;
-  font-size: 1.2rem;
+.header {
   margin-bottom: 2rem;
 }
 
-.features {
+.header h1 {
+  color: var(--accent);
+  font-size: 2rem;
+  margin: 0;
+}
+
+.matches-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 2rem;
-  margin-top: 2rem;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
 }
 
-.feature {
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-  padding: 1.5rem;
-  border-radius: 10px;
-  text-align: center;
+.match-card {
+  background: var(--bg-secondary);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s, box-shadow 0.3s;
+  border: 1px solid var(--border-color);
 }
 
-.feature h2 {
-  color: #333;
-  margin-bottom: 0.5rem;
+.match-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 16px rgba(102, 126, 234, 0.2);
 }
 
-.feature p {
-  color: #666;
-  margin-bottom: 1rem;
-}
-
-.btn {
-  display: inline-block;
-  padding: 0.75rem 1.5rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+.match-date {
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
   color: white;
-  text-decoration: none;
+  padding: 0.75rem;
+  text-align: center;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.match-body {
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.team {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.team.visitante {
+  flex-direction: column-reverse;
+}
+
+.team-name {
+  font-weight: 600;
+  color: var(--text-primary);
+  text-align: center;
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+.score-input {
+  width: 60px;
+  padding: 0.75rem;
+  font-size: 1.5rem;
+  font-weight: bold;
+  text-align: center;
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--bg-primary);
+  color: var(--accent);
+  transition: border-color 0.3s;
+}
+
+.score-input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.vs {
+  color: var(--text-secondary);
+  font-weight: bold;
+  margin: 0 0.5rem;
+}
+
+.match-footer {
+  padding: 0.75rem 1.5rem;
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  justify-content: center;
+}
+
+.save-btn {
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
+  color: white;
   border: none;
-  border-radius: 4px;
+  padding: 0.6rem 1.5rem;
+  border-radius: 6px;
+  font-weight: 600;
   cursor: pointer;
   transition: transform 0.3s;
+  font-size: 0.9rem;
 }
 
-.btn:hover:not(:disabled) {
+.save-btn:hover {
   transform: translateY(-2px);
 }
 
-.btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+@media (max-width: 768px) {
+  .matches-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .header h1 {
+    font-size: 1.5rem;
+  }
 }
 </style>
